@@ -17,37 +17,17 @@ let userSchema = {
 
 let User = new mongoose.model("User", userSchema);
 
+
 app.get("/", function(req, res)
 {
     res.render("home");
 });
 
-app.get("/login", function(req, res)
-{
+app.route("/login")
+.get((req,res) =>{
     res.render("login");
-});
-
-app.get("/register", function(req, res)
-{
-    res.render("register");
-});
-
-app.post("/register", (req,res) =>{
-    let newUser = new User({
-        email: req.body.username,
-        password: req.body.password
-    });
-    newUser.save( (err) =>{
-        if(err) {
-            console.log(err)
-        } else {
-            res.render("secrets");
-        }
-    });
-});
-
-app.post("/login", function(req, res)
-{
+})
+.post((req,res) => {
     const username = req.body.username;
     const password = req.body.password;
 
@@ -63,6 +43,24 @@ app.post("/login", function(req, res)
             }
         }
     })
+});
+
+app.route("/register")
+.get((req,res) =>{
+    res.render("register");
+})
+.post((req,res) => {
+    let newUser = new User({
+        email: req.body.username,
+        password: req.body.password
+    });
+    newUser.save( (err) =>{
+        if(err) {
+            console.log(err)
+        } else {
+            res.render("secrets");
+        }
+    });
 });
 
 
