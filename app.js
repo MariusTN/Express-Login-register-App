@@ -1,15 +1,16 @@
-require('dotenv').config()
-let express = require('express');
+require("dotenv").config();
+let express = require("express");
 let mongoose = require("mongoose");
 let bodyParser = require("body-parser");
-let ejs = require('ejs');
-
+let ejs = require("ejs");
+let bcrypt = require("bcrypt");
 let app = express();
 
-app.use(bodyParser.urlencoded({ extended: false }));
 
+app.use(bodyParser.urlencoded({ extended: false }));
 app.set('view engine', 'ejs');
 app.use(express.static("public"));
+
 mongoose.connect(process.env.CONNECTION , {useNewUrlParser: true, useUnifiedTopology: true});
 
 let userSchema = {
@@ -38,12 +39,16 @@ app.route("/login")
             
         } else {
             if(fUser){
-                if(fUser.password === password){
-                    res.render("secrets");
+                bcrypt.compare(password, fUser.password).then(function(result) {
+                    if(result === true){
+                        res.render("secrets");
+                    }
+                });
+                
+                
                 }
-            }
         }
-    })
+    });
 });
 
 app.route("/register")
@@ -51,22 +56,26 @@ app.route("/register")
     res.render("register");
 })
 .post((req,res) => {
-    let newUser = new User({
-        email: req.body.username,
-        password: req.body.password
+    let saltRounds = 13;
+    bcrypt.hash(req.body.password, saltRounds).then(function(hash) {
+        let newUser = new User({
+            email: req.body.username,
+            password: hash
+        });
+        newUser.save( (err) =>{
+            if(err) {
+                console.log(err)
+            } else {
+                res.render("secrets");
+            }
+        });// Store hash in your password DB.
     });
-    newUser.save( (err) =>{
-        if(err) {
-            console.log(err)
-        } else {
-            res.render("secrets");
-        }
-    });
-});
 
+    
+});
 
 let port = process.env.port || 5000;
 
 app.listen(port, () => {
     console.log(`up and running at ${port}`);
-})
+});
