@@ -1,14 +1,16 @@
+require('dotenv').config()
 let express = require('express');
 let mongoose = require("mongoose");
 let bodyParser = require("body-parser");
+let ejs = require('ejs');
 
 let app = express();
 
-app.use(bodyParser.urlencoded({ extended: false }))
+app.use(bodyParser.urlencoded({ extended: false }));
 
 app.set('view engine', 'ejs');
 app.use(express.static("public"));
-mongoose.connect('mongodb://localhost:27017/userDB', {useNewUrlParser: true, useUnifiedTopology: true});
+mongoose.connect(process.env.CONNECTION , {useNewUrlParser: true, useUnifiedTopology: true});
 
 let userSchema = {
     email: String,
@@ -16,7 +18,6 @@ let userSchema = {
 };
 
 let User = new mongoose.model("User", userSchema);
-
 
 app.get("/", function(req, res)
 {
@@ -28,8 +29,8 @@ app.route("/login")
     res.render("login");
 })
 .post((req,res) => {
-    const username = req.body.username;
-    const password = req.body.password;
+    let username = req.body.username;
+    let password = req.body.password;
 
     User.findOne({email: username}, (err, fUser) =>{
         if (err) {
